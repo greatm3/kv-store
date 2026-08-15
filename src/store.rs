@@ -29,3 +29,24 @@ impl Store {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_helper() -> Store {
+        Store::new()
+    }
+
+    #[test]
+    fn set_get_data() {
+
+        let mut t_store = test_helper();
+        t_store.set("name".to_string(), "John".to_string());
+
+        let name = t_store.get("name");
+
+        if let Some(name) = name {
+            assert_eq!("John", name);
+        }
+    }
+}
