@@ -8,4 +8,10 @@ fn main() {
     let value = String::from("Great");
 
     s_store.set(key, value);
+
+    let name = s_store.get("name");
+
+    if let Some(name) = name {
+        println!("{name}")
+    }
 }

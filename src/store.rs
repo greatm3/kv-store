@@ -13,4 +13,8 @@ impl Store {
     pub fn set(&mut self, key: String, value: String) {
         self.data_store.entry(key).or_insert(value);
     }
+
+    pub fn get(&self, key: &str) -> Option<&String> {
+        self.data_store.get(key)
+    }
 }
