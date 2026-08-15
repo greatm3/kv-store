@@ -43,4 +43,14 @@ mod tests {
 
         assert_eq!(name, Some(&String::from("John")))
     }
+
+    #[test]
+    fn delete_data() {
+
+        let mut t_store = test_helper();
+        t_store.set("name".to_string(), "John".to_string());
+
+        assert!(t_store.delete("name"))
+
+    }
 }
