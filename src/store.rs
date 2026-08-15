@@ -5,7 +5,7 @@ pub struct Store {
 }
 
 impl Store {
-    pub fn new() -> Store {
+    pub fn new() -> Self {
         Store {
             data_store: HashMap::new(),
         }
@@ -49,5 +49,36 @@ mod tests {
         t_store.set("name".to_string(), "John".to_string());
 
         assert!(t_store.delete("name"))
+    }
+
+    #[test]
+    fn get_unset_data() {
+        let t_store = test_helper();
+
+        let unset_key = t_store.get("name");
+
+        assert_eq!(unset_key, None)
+    }
+
+    #[test]
+    fn delete_unset_data() {
+        let mut t_store = test_helper();
+
+        // should return false on unexistent key
+        assert!(!t_store.delete("name"))
+    }
+
+    #[test]
+    fn update_data() {
+        let mut t_store = test_helper();
+
+        t_store.set("name".to_string(), "mark".to_string());
+
+        // update name
+        t_store.set("name".to_string(), "John".to_string());
+
+        let name = t_store.get("name");
+
+        assert_eq!(name, Some(&String::from("John")))
     }
 }
