@@ -6,12 +6,13 @@ pub struct Store {
 
 impl Store {
     pub fn new() -> Store {
-        let data_store = HashMap::new();
-        Store { data_store }
+        Store {
+            data_store: HashMap::new()
+        }
     }
 
     pub fn set(&mut self, key: String, value: String) {
-        self.data_store.entry(key).or_insert(value);
+        self.data_store.insert(key, value);
     }
 
     pub fn get(&self, key: &str) -> Option<&String> {
