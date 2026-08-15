@@ -1,1 +1,17 @@
+# Cargo build artifacts
 /target
+
+# Backup files some editors create
+*.orig
+*.bak
+
+# OS-specific junk
+.DS_Store
+Thumbs.db
+
+# Editor/IDE folders (only add the ones you actually use)
+.vscode/
+.idea/
+
+# Environment/secrets, if you ever add config
+.env
