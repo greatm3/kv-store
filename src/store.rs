@@ -18,4 +18,14 @@ impl Store {
     pub fn get(&self, key: &str) -> Option<&String> {
         self.data_store.get(key)
     }
+
+    pub fn delete(&mut self, key: &str) -> bool {
+        let result = self.data_store.remove(key);
+
+        match result {
+            Some(_) => true,
+            None => false
+        }
+    }
 }
+
