@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
 pub struct Store {
-    data_store: HashMap<String, String>
+    data_store: HashMap<String, String>,
 }
 
 impl Store {
     pub fn new() -> Store {
         Store {
-            data_store: HashMap::new()
+            data_store: HashMap::new(),
         }
     }
 
@@ -35,7 +35,6 @@ mod tests {
 
     #[test]
     fn set_get_data() {
-
         let mut t_store = test_helper();
         t_store.set("name".to_string(), "John".to_string());
 
@@ -46,11 +45,9 @@ mod tests {
 
     #[test]
     fn delete_data() {
-
         let mut t_store = test_helper();
         t_store.set("name".to_string(), "John".to_string());
 
         assert!(t_store.delete("name"))
-
     }
 }
