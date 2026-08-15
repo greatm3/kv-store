@@ -20,12 +20,8 @@ impl Store {
     }
 
     pub fn delete(&mut self, key: &str) -> bool {
-        let result = self.data_store.remove(key);
-
-        match result {
-            Some(_) => true,
-            None => false
-        }
+        // is_some() - check it out later. used this instead of match
+        self.data_store.remove(key).is_some()
     }
 }
 
@@ -45,8 +41,6 @@ mod tests {
 
         let name = t_store.get("name");
 
-        if let Some(name) = name {
-            assert_eq!("John", name);
-        }
+        assert_eq!(name, Some(&String::from("John")))
     }
 }
