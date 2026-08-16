@@ -34,7 +34,7 @@ mod tests {
     }
 
     #[test]
-    fn set_get_data() {
+    fn test_set_get_data() {
         let mut t_store = test_helper();
         t_store.set("name".to_string(), "John".to_string());
 
@@ -44,7 +44,7 @@ mod tests {
     }
 
     #[test]
-    fn delete_data() {
+    fn test_delete_data() {
         let mut t_store = test_helper();
         t_store.set("name".to_string(), "John".to_string());
 
@@ -52,7 +52,7 @@ mod tests {
     }
 
     #[test]
-    fn get_unset_data() {
+    fn test_get_unset_data() {
         let t_store = test_helper();
 
         let unset_key = t_store.get("name");
@@ -61,7 +61,7 @@ mod tests {
     }
 
     #[test]
-    fn delete_unset_data() {
+    fn test_delete_unset_data() {
         let mut t_store = test_helper();
 
         // should return false on unexistent key
@@ -69,7 +69,7 @@ mod tests {
     }
 
     #[test]
-    fn update_data() {
+    fn test_update_data() {
         let mut t_store = test_helper();
 
         t_store.set("name".to_string(), "mark".to_string());
