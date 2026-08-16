@@ -28,6 +28,9 @@ Line-based, space-separated, all text.
 
 Malformed input returns a clear error response rather than crashing the connection or server.
 
+Read my [Protocol spec](PROTOCOL.md) for more details.
+
+
 ## Running
 
 ```bash
