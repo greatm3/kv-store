@@ -1,4 +1,6 @@
 mod store;
+mod command;
 
-use store::Store;
-fn main() {}
+fn main() {
+    println!("{:?}", command::parse("SET name Great"));
+}
