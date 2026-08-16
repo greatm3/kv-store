@@ -36,6 +36,9 @@ pub fn lexer(line: &str) -> Result<Vec<Token>, LexError> {
                 '"' => {
                     in_quotes = false;
                     chars.next();
+
+                    tokens.push(Token::QuotedString(current_word.clone()));
+                    current_word.clear();
                 }
                 _ => {
                     current_word.push(char);
@@ -45,8 +48,10 @@ pub fn lexer(line: &str) -> Result<Vec<Token>, LexError> {
         } else {
             match char {
                 ' ' => {
-                    tokens.push(Token::Word(current_word.clone()));
-                    current_word.clear();
+                    if current_word.len() > 0 {
+                        tokens.push(Token::Word(current_word.clone()));
+                        current_word.clear();
+                    }
                 }
                 '"' => {
                     in_quotes = true;
@@ -61,7 +66,9 @@ pub fn lexer(line: &str) -> Result<Vec<Token>, LexError> {
     }
 
     if !in_quotes {
-        tokens.push(Token::Word(current_word.clone()));
+        if current_word.len() > 0 {
+            tokens.push(Token::Word(current_word.clone()));
+        }
     } else {
         return Err(LexError::StillInQuote);
     }
@@ -83,7 +90,7 @@ mod tests {
         let expected = vec![
             Token::Word("SET".to_string()),
             Token::Word("key".to_string()),
-            Token::Word("value".to_string())
+            Token::Word("value".to_string()),
         ];
 
         assert_eq!(lexer(input).unwrap(), expected)
@@ -94,8 +101,8 @@ mod tests {
         let input = "SET \"key spaced\" value";
         let expected = vec![
             Token::Word("SET".to_string()),
-            Token::Word("key spaced".to_string()),
-            Token::Word("value".to_string())
+            Token::QuotedString("key spaced".to_string()),
+            Token::Word("value".to_string()),
         ];
 
         assert_eq!(lexer(input).unwrap(), expected)
@@ -118,7 +125,7 @@ mod tests {
         let expected = vec![
             Token::Word("SET".to_string()),
             Token::Word("key".to_string()),
-            Token::Word("value".to_string())
+            Token::Word("value".to_string()),
         ];
 
         assert_eq!(lexer(input).unwrap(), expected)
