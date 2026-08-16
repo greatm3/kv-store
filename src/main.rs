@@ -1,6 +1,15 @@
-mod store;
 mod command;
+mod store;
 
 fn main() {
-    // println!("{:?}", command::parse("SET name Great"));
+    let res = command::lexer("SET \"name\" Great");
+
+    match res {
+        Ok(tokens) => {
+            for token in tokens {
+                println!("{:?}", token);
+            }
+        },
+        Err(e) => println!("{e}")
+    }
 }
