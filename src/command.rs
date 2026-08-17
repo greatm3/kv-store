@@ -1,6 +1,5 @@
 use std::error::Error;
 use std::fmt;
-use std::string::ParseError;
 
 // will eventually make a smarter lexer, this should do for now - todo
 #[derive(Debug, PartialEq)]
