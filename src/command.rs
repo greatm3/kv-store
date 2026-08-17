@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fmt;
+use std::mem;
 
 // will eventually make a smarter lexer, this should do for now - todo
 #[derive(Debug, PartialEq)]
@@ -36,8 +37,8 @@ pub fn lexer(line: &str) -> Result<Vec<Token>, LexError> {
                     in_quotes = false;
                     chars.next();
 
-                    tokens.push(Token::QuotedString(current_word.clone()));
-                    current_word.clear();
+                    // using mem::take to clone and clear the current_word at the same time.
+                    tokens.push(Token::QuotedString(mem::take(&mut current_word)));
                 }
                 _ => {
                     current_word.push(ch);
@@ -48,14 +49,14 @@ pub fn lexer(line: &str) -> Result<Vec<Token>, LexError> {
             match ch {
                 ' ' => {
                     if current_word.len() > 0 {
-                        tokens.push(Token::Word(current_word.clone()));
-                        current_word.clear();
+                        tokens.push(Token::Word(mem::take(&mut current_word)));
                     }
                 }
                 '"' => {
                     in_quotes = true;
-                    // tokens.push(Token::Word(current_word.clone()));
-                    //     current_word.clear();
+                    if current_word.len() > 0 {
+                        tokens.push(Token::Word(mem::take(&mut current_word)));
+                    }
                     chars.next();
                     continue;
                 }
@@ -68,7 +69,7 @@ pub fn lexer(line: &str) -> Result<Vec<Token>, LexError> {
 
     if !in_quotes {
         if current_word.len() > 0 {
-            tokens.push(Token::Word(current_word.clone()));
+            tokens.push(Token::Word(mem::take(&mut current_word)));
         }
     } else {
         return Err(LexError::StillInQuote);
@@ -146,7 +147,7 @@ mod tests {
         let expected = vec![
             Token::Word("SET".to_string()),
             Token::Word("key".to_string()),
-            Token::QuotedString("value spaced".to_string())
+            Token::QuotedString("value spaced".to_string()),
         ];
 
         assert_eq!(lexer(input).unwrap(), expected)
