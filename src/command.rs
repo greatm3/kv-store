@@ -29,9 +29,9 @@ pub fn lexer(line: &str) -> Result<Vec<Token>, LexError> {
 
     let mut in_quotes = false;
 
-    while let Some(&char) = chars.peek() {
+    while let Some(&ch) = chars.peek() {
         if in_quotes {
-            match char {
+            match ch {
                 '"' => {
                     in_quotes = false;
                     chars.next();
@@ -40,12 +40,12 @@ pub fn lexer(line: &str) -> Result<Vec<Token>, LexError> {
                     current_word.clear();
                 }
                 _ => {
-                    current_word.push(char);
+                    current_word.push(ch);
                     chars.next();
                 }
             }
         } else {
-            match char {
+            match ch {
                 ' ' => {
                     if current_word.len() > 0 {
                         tokens.push(Token::Word(current_word.clone()));
@@ -54,10 +54,12 @@ pub fn lexer(line: &str) -> Result<Vec<Token>, LexError> {
                 }
                 '"' => {
                     in_quotes = true;
+                    tokens.push(Token::Word(current_word.clone()));
+                    current_word.clear();
                     chars.next();
                     continue;
                 }
-                _ => current_word.push(char),
+                _ => current_word.push(ch),
             }
 
             chars.next();
