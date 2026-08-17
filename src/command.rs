@@ -6,14 +6,29 @@ use std::mem;
 pub enum Command {
     Set { key: String, value: String },
     Get { key: String },
-    Del { key: String }
+    Del { key: String },
 }
 
 #[derive(Debug, PartialEq)]
 pub enum ParseError {
     EmptyCommand,
     UnknownCommand(String),
-    WrongArgumentCount { expected: usize, got: usize }
+    WrongArgumentCount { expected: usize, got: usize },
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ParseError::EmptyCommand => write!(f, "ERR empty command: no input provided\n"),
+            ParseError::UnknownCommand(s) => {
+                write!(f, "ERR unknown command '{s}': expected SET, GET or DEL'n")
+            }
+            ParseError::WrongArgumentCount { expected, got } => write!(
+                f,
+                "wrong number of arguments: expected {expected} arguments, got {got}\n"
+            ),
+        }
+    }
 }
 
 // will eventually make a smarter lexer, this should do for now - todo
@@ -30,12 +45,13 @@ pub enum LexError {
 }
 
 impl fmt::Display for LexError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Reached EOL while still inside a quote")
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "ERR Reached EOL while still inside a quote\n")
     }
 }
 
 impl Error for LexError {}
+impl Error for ParseError {}
 
 pub fn lexer(line: &str) -> Result<Vec<Token>, LexError> {
     let mut tokens = Vec::<Token>::new();
@@ -92,9 +108,13 @@ pub fn lexer(line: &str) -> Result<Vec<Token>, LexError> {
     Ok(tokens)
 }
 
-// pub fn parse(tokens: &[Token]) -> Result<Command, ParseError> {
+pub fn parse(tokens: &[Token]) -> Result<Command, ParseError> {
+    if tokens.is_empty() {
+        return Err(ParseError::EmptyCommand);
+    }
 
-// }
+    // return ;
+}
 
 #[cfg(test)]
 mod tests {
