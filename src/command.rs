@@ -2,6 +2,20 @@ use std::error::Error;
 use std::fmt;
 use std::mem;
 
+#[derive(Debug, PartialEq)]
+pub enum Command {
+    Set { key: String, value: String },
+    Get { key: String },
+    Del { key: String }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum ParseError {
+    EmptyCommand,
+    UnknownCommand(String),
+    WrongArgumentCount { expected: usize, got: usize }
+}
+
 // will eventually make a smarter lexer, this should do for now - todo
 #[derive(Debug, PartialEq)]
 pub enum Token {
