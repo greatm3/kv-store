@@ -127,28 +127,17 @@ pub fn parse(tokens: &[Token]) -> Result<Command, ParseError> {
     return;
 }
 
-// token creation helper, for tests
-impl Token {
-    pub fn word(s: &str) -> Self {
-        Token::Word(s.to_string())
-    }
-
-    pub fn quoted(s: &str) -> Self {
-        Token::QuotedString(s.to_string())
-    }
-}
-
 #[cfg(test)]
-mod tests {
+mod lexer_tests {
     use super::*;
 
     #[test]
     fn test_simple_words() {
-        let input = "SET key value";
+        let input = "SET name Great";
         let expected = vec![
             Token::Word("SET".to_string()),
-            Token::Word("key".to_string()),
-            Token::Word("value".to_string()),
+            Token::Word("name".to_string()),
+            Token::Word("Great".to_string()),
         ];
 
         assert_eq!(lexer(input).unwrap(), expected)
@@ -179,11 +168,11 @@ mod tests {
 
     #[test]
     fn test_multiple_spaces() {
-        let input = "SET     key       value   ";
+        let input = "SET     age       192   ";
         let expected = vec![
             Token::Word("SET".to_string()),
-            Token::Word("key".to_string()),
-            Token::Word("value".to_string()),
+            Token::Word("age".to_string()),
+            Token::Word("192".to_string()),
         ];
 
         assert_eq!(lexer(input).unwrap(), expected)
@@ -207,5 +196,116 @@ mod tests {
         ];
 
         assert_eq!(lexer(input).unwrap(), expected)
+    }
+}
+
+// token creation helper, for tests
+impl Token {
+    pub fn word(s: &str) -> Self {
+        Token::Word(s.to_string())
+    }
+
+    pub fn quoted(s: &str) -> Self {
+        Token::QuotedString(s.to_string())
+    }
+}
+
+#[cfg(test)]
+mod parse_tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_empty_tokens() {
+        let tokens = vec![];
+        assert_eq!(parse(&tokens), Err(ParseError::EmptyCommand))
+    }
+
+    #[test]
+    fn test_parse_set_valid() {
+        let tokens = vec![
+            Token::word("SET"),
+            Token::word("name"),
+            Token::word("Great"),
+        ];
+        let expected = Command::Set {
+            key: "name".to_string(),
+            value: "Great".to_string(),
+        };
+        assert_eq!(parse(&tokens).unwrap(), expected)
+    }
+
+    #[test]
+    fn test_parse_set_with_quoted_value() {
+        let tokens = vec![
+            Token::word("SET"),
+            Token::word("bio"),
+            Token::quoted("programmer"),
+        ];
+        let expected = Command::Set {
+            key: "bio".to_string(),
+            value: "programmer".to_string(),
+        };
+        assert_eq!(parse(&tokens).unwrap(), expected);
+    }
+
+    #[test]
+    fn test_parse_get_valid() {
+        let tokens = vec![Token::word("GET"), Token::word("name")];
+        let expected = Command::Get {
+            key: "name".to_string(),
+        };
+        assert_eq!(parse(&tokens).unwrap(), expected);
+    }
+
+    #[test]
+    fn test_parse_del_valid() {
+        let tokens = vec![Token::word("DEL"), Token::word("name")];
+        let expected = Command::Del {
+            key: "name".to_string(),
+        };
+        assert_eq!(parse(&tokens).unwrap(), expected);
+    }
+
+    #[test]
+    fn test_parse_unknown_command() {
+        let tokens = vec![Token::word("PING")];
+        assert_eq!(
+            parse(&tokens),
+            Err(ParseError::UnknownCommand("PING".to_string()))
+        );
+    }
+
+    #[test]
+    fn test_parse_quoted_command_is_unknown() {
+        // "SET" should not be treated as a valid command keyword, because it has quotes... i'll consider if to change later
+        let tokens = vec![Token::quoted("SET"), Token::word("key"), Token::word("val")];
+        assert_eq!(
+            parse(&tokens),
+            Err(ParseError::UnknownCommand("SET".to_string()))
+        );
+    }
+
+    #[test]
+    fn test_parse_wrong_args_set() {
+        let tokens = vec![Token::word("SET"), Token::word("key")];
+        assert_eq!(
+            parse(&tokens),
+            Err(ParseError::WrongArgumentCount {
+                expected: 2,
+                got: 1
+            })
+        );
+    }
+
+    #[test]
+    fn test_parse_wrong_args_get() {
+        let tokens = vec![Token::word("GET"), Token::word("key"), Token::word("extra")];
+        assert_eq!(
+            parse(&tokens),
+            Err(ParseError::WrongArgumentCount {
+                expected: 1,
+                got: 2
+            })
+        );
     }
 }

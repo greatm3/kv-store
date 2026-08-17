@@ -26,7 +26,7 @@ impl Store {
 }
 
 #[cfg(test)]
-mod tests {
+mod store_tests {
     use super::*;
 
     fn test_helper() -> Store {
