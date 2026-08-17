@@ -109,11 +109,33 @@ pub fn lexer(line: &str) -> Result<Vec<Token>, LexError> {
 }
 
 pub fn parse(tokens: &[Token]) -> Result<Command, ParseError> {
+    let supported_commands = vec!["SET", "GET", "DEL"];
+
     if tokens.is_empty() {
         return Err(ParseError::EmptyCommand);
     }
 
-    // return ;
+    match tokens[0] {
+        Token::QuotedString(s) => return Err(ParseError::UnknownCommand(s)),
+        Token::Word(s) => {
+            if !supported_commands.contains(&s.as_str()) {
+                return Err(ParseError::UnknownCommand(s));
+            }
+        }
+    }
+
+    return;
+}
+
+// token creation helper, for tests
+impl Token {
+    pub fn word(s: &str) -> Self {
+        Token::Word(s.to_string())
+    }
+
+    pub fn quoted(s: &str) -> Self {
+        Token::QuotedString(s.to_string())
+    }
 }
 
 #[cfg(test)]
