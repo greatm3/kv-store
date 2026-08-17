@@ -1,15 +1,18 @@
 mod command;
 mod store;
 
-use command::Token;
+use command::{Token, parse};
 
 fn main() {
     let sp = vec![
-        Token::Word(String::from("SET")),
+        Token::Word(String::from("set")),
         Token::Word(String::from("GET")),
     ];
 
-    let result = sp.contains(&Token::Word("SET".to_string()));
+    let result = parse(&sp);
 
-    println!("{}", result)
+    match result {
+        Ok(s) => println!("{:?}", s),
+        Err(e) => println!("{e}"),
+    }
 }

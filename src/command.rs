@@ -21,7 +21,7 @@ impl fmt::Display for ParseError {
         match self {
             ParseError::EmptyCommand => write!(f, "ERR empty command: no input provided\n"),
             ParseError::UnknownCommand(s) => {
-                write!(f, "ERR unknown command '{s}': expected SET, GET or DEL'n")
+                write!(f, "ERR unknown command '{s}': expected SET, GET or DEL\n")
             }
             ParseError::WrongArgumentCount { expected, got } => write!(
                 f,
@@ -32,10 +32,27 @@ impl fmt::Display for ParseError {
 }
 
 // will eventually make a smarter lexer, this should do for now - todo
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     Word(String),
     QuotedString(String),
+}
+
+impl Token {
+    pub fn word(s: &str) -> Self {
+        Token::Word(s.to_string())
+    }
+
+    pub fn quoted(s: &str) -> Self {
+        Token::QuotedString(s.to_string())
+    }
+
+    // this is to extract the string
+    pub fn into_inner(self) -> String {
+        match self {
+            Token::Word(s) | Token::QuotedString(s) => s,
+        }
+    }
 }
 
 // this lexer currently has one way to fail: reaching end of line while still inside a quote
@@ -109,22 +126,71 @@ pub fn lexer(line: &str) -> Result<Vec<Token>, LexError> {
 }
 
 pub fn parse(tokens: &[Token]) -> Result<Command, ParseError> {
-    let supported_commands = vec!["SET", "GET", "DEL"];
+    let supported_commands = vec!["SET".to_string(), "GET".to_string(), "DEL".to_string()];
 
     if tokens.is_empty() {
         return Err(ParseError::EmptyCommand);
     }
 
-    match tokens[0] {
-        Token::QuotedString(s) => return Err(ParseError::UnknownCommand(s)),
+    match &tokens[0] {
+        Token::QuotedString(s) => return Err(ParseError::UnknownCommand(s.to_string())),
         Token::Word(s) => {
-            if !supported_commands.contains(&s.as_str()) {
-                return Err(ParseError::UnknownCommand(s));
+            if !supported_commands.contains(&s.clone()) {
+                return Err(ParseError::UnknownCommand(s.to_string()));
+            }
+
+            let _command = tokens[0].clone().into_inner();
+
+            match _command.as_str() {
+                "SET" => {
+                    if tokens.len() != 3 {
+                        return Err(ParseError::WrongArgumentCount {
+                            expected: 2,
+                            got: tokens.len() - 1,
+                        });
+                    }
+
+                    let _key = tokens[1].clone().into_inner();
+                    let _value = tokens[2].clone().into_inner();
+
+                    return Ok(Command::Set {
+                        key: _key,
+                        value: _value,
+                    });
+                }
+                "GET" => {
+                    if tokens.len() != 2 {
+                        return Err(ParseError::WrongArgumentCount {
+                            expected: 1,
+                            got: tokens.len() - 1,
+                        });
+                    }
+
+                    let _key = tokens[1].clone().into_inner();
+
+                    return Ok(Command::Get { key: _key });
+                }
+                "DEL" => {
+                    if tokens.len() != 2 {
+                        return Err(ParseError::WrongArgumentCount {
+                            expected: 1,
+                            got: tokens.len() - 1,
+                        });
+                    }
+
+                    let _key = tokens[1].clone().into_inner();
+
+                    return Ok(Command::Del { key: _key });
+                }
+                _ => {}
             }
         }
     }
 
-    return;
+    return Ok(Command::Set {
+        key: "j".to_string(),
+        value: "h".to_string(),
+    });
 }
 
 #[cfg(test)]
@@ -196,17 +262,6 @@ mod lexer_tests {
         ];
 
         assert_eq!(lexer(input).unwrap(), expected)
-    }
-}
-
-// token creation helper, for tests
-impl Token {
-    pub fn word(s: &str) -> Self {
-        Token::Word(s.to_string())
-    }
-
-    pub fn quoted(s: &str) -> Self {
-        Token::QuotedString(s.to_string())
     }
 }
 
