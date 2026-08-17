@@ -54,8 +54,8 @@ pub fn lexer(line: &str) -> Result<Vec<Token>, LexError> {
                 }
                 '"' => {
                     in_quotes = true;
-                    tokens.push(Token::Word(current_word.clone()));
-                    current_word.clear();
+                    // tokens.push(Token::Word(current_word.clone()));
+                    //     current_word.clear();
                     chars.next();
                     continue;
                 }
@@ -138,5 +138,17 @@ mod tests {
         let result = lexer(input);
 
         assert!(matches!(result, Err(LexError::StillInQuote)))
+    }
+
+    #[test]
+    fn test_adjacent_quotes() {
+        let input = "SET key\"value spaced\"";
+        let expected = vec![
+            Token::Word("SET".to_string()),
+            Token::Word("key".to_string()),
+            Token::QuotedString("value spaced".to_string())
+        ];
+
+        assert_eq!(lexer(input).unwrap(), expected)
     }
 }
