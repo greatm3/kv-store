@@ -9,6 +9,8 @@ const SERVER_PORT: u64 = 6379;
 
 fn main() -> io::Result<()> {
 
+    let mut kv_store = store::Store::new();
+
     let address = format!("{}:{}", SERVER_HOST, SERVER_PORT);
 
     let listener = TcpListener::bind(&address)?;
@@ -17,7 +19,7 @@ fn main() -> io::Result<()> {
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
-                if let Err(e) = handle_client(stream) {
+                if let Err(e) = handle_client(stream, &mut kv_store) {
                     eprintln!("Error handling client: {}", e);
                 }
             },
@@ -31,7 +33,7 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn handle_client(stream: TcpStream) -> io::Result<()> {
+fn handle_client(stream: TcpStream, kv_store: &mut store::Store) -> io::Result<()> {
     let peer = stream.peer_addr()?;
     println!("New client connected: {}", peer);
 
@@ -42,12 +44,35 @@ fn handle_client(stream: TcpStream) -> io::Result<()> {
     let mut line = String::new();
     loop {
         line.clear();
+
         let bytes_read = reader.read_line(&mut line)?;
         if bytes_read == 0 {
             break;
         }
+        
+        let tokens = match command::lexer(line.as_str()) {
+            Ok(tokens) => tokens,
+            Err(lex_error) => {
+                let error_response = lex_error.to_string();
+                writer.write_all(error_response.as_bytes())?;
+                writer.flush()?;
+                continue;
+            }
+        };
 
-        writer.write_all(line.as_bytes())?;
+        let parsed_command = match command::parse(&tokens) {
+            Ok(cmd) => cmd,
+            Err(parse_error) => {
+                let error_response = parse_error.to_string();
+                writer.write_all(error_response.as_bytes())?;
+                writer.flush()?;
+                continue;
+            }
+        };
+
+        let response = format!("{parsed_command:?}");
+        writer.write_all(response.as_bytes())?;
+        writer.flush()?;
     }
 
     println!("Client disconnected: {}", peer);
