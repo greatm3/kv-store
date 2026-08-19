@@ -70,7 +70,7 @@ fn handle_client(stream: TcpStream, kv_store: &mut store::Store) -> io::Result<(
             }
         };
 
-        let response = format!("{parsed_command:?}\n");
+        let response = format!("{}\n", kv_store.execute(parsed_command));
         writer.write_all(response.as_bytes())?;
         writer.flush()?;
     }
