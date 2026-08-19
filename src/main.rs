@@ -50,7 +50,7 @@ fn handle_client(stream: TcpStream, kv_store: &mut store::Store) -> io::Result<(
             break;
         }
         
-        let tokens = match command::lexer(line.as_str()) {
+        let tokens = match command::lexer(line.trim_end()) {
             Ok(tokens) => tokens,
             Err(lex_error) => {
                 let error_response = lex_error.to_string();
@@ -70,7 +70,7 @@ fn handle_client(stream: TcpStream, kv_store: &mut store::Store) -> io::Result<(
             }
         };
 
-        let response = format!("{parsed_command:?}");
+        let response = format!("{parsed_command:?}\n");
         writer.write_all(response.as_bytes())?;
         writer.flush()?;
     }

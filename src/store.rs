@@ -1,3 +1,4 @@
+use crate::command::Command;
 use std::collections::HashMap;
 
 pub struct Store {
@@ -22,6 +23,28 @@ impl Store {
     pub fn delete(&mut self, key: &str) -> bool {
         // is_some() - check it out later. used this instead of match
         self.data_store.remove(key).is_some()
+    }
+
+    pub fn execute(&mut self, cmd: Command) -> String {
+        match cmd {
+            Command::Set { key, value } => {
+                self.set(key, value);
+                "OK".to_string()
+            }
+            Command::Get { key } => {
+                return match self.get(key.as_str()) {
+                    Some(value) => value.to_string(),
+                    None => "NIL".to_string(),
+                };
+            }
+            Command::Del { key } => {
+                if self.delete(key.as_str()) {
+                    return "OK".to_string();
+                }
+
+                return "NOT FOUND".to_string();
+            }
+        }
     }
 }
 
