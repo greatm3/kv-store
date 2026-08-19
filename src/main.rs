@@ -4,8 +4,25 @@ use std::net::{TcpListener, TcpStream};
 mod command;
 mod store;
 
-fn main() {
-    
+fn main() -> io::Result<()> {
+    let listener = TcpListener::bind("127.0.0.1:6379")?;
+    println!("Server listening on 127.0.0.1:6379");
+
+    for stream in listener.incoming() {
+        match stream {
+            Ok(stream) => {
+                if let Err(e) = handle_client(stream) {
+                    eprintln!("Error handling client: {}", e);
+                }
+            },
+
+            Err(e) => {
+                eprintln!("Connection failed: {}", e)
+            }
+        }
+    }
+
+    Ok(())
 }
 
 fn handle_client(mut stream: TcpStream) -> io::Result<()> {
