@@ -4,9 +4,15 @@ use std::net::{TcpListener, TcpStream};
 mod command;
 mod store;
 
+const SERVER_HOST: &str = "127.0.0.1";
+const SERVER_PORT: u64 = 6379;
+
 fn main() -> io::Result<()> {
-    let listener = TcpListener::bind("127.0.0.1:6379")?;
-    println!("Server listening on 127.0.0.1:6379");
+
+    let address = format!("{}:{}", SERVER_HOST, SERVER_PORT);
+
+    let listener = TcpListener::bind(&address)?;
+    println!("Server listening on {}", address);
 
     for stream in listener.incoming() {
         match stream {
@@ -25,7 +31,7 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn handle_client(mut stream: TcpStream) -> io::Result<()> {
+fn handle_client(stream: TcpStream) -> io::Result<()> {
     let peer = stream.peer_addr()?;
     println!("New client connected: {}", peer);
 
