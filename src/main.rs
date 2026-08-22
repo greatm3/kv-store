@@ -1,5 +1,9 @@
 use std::io::{self, BufRead, BufReader, Write};
 use std::net::{TcpListener, TcpStream};
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+use crate::store::Store;
 
 mod command;
 mod store;
@@ -8,8 +12,7 @@ const SERVER_HOST: &str = "127.0.0.1";
 const SERVER_PORT: u64 = 6379;
 
 fn main() -> io::Result<()> {
-
-    let mut kv_store = store::Store::new();
+    let mut kv_store = Arc::new(Mutex::new(store::Store::new()));
 
     let address = format!("{}:{}", SERVER_HOST, SERVER_PORT);
 
@@ -17,12 +20,14 @@ fn main() -> io::Result<()> {
     println!("Server listening on {}", address);
 
     for stream in listener.incoming() {
+        let shared_store = Arc::clone(&kv_store);
+
         match stream {
             Ok(stream) => {
-                if let Err(e) = handle_client(stream, &mut kv_store) {
-                    eprintln!("Error handling client: {}", e);
-                }
-            },
+                thread::spawn(move || {
+                    handle_client(stream, &mut kv_store);
+                });
+            }
 
             Err(e) => {
                 eprintln!("Connection failed: {}", e)
@@ -33,7 +38,7 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn handle_client(stream: TcpStream, kv_store: &mut store::Store) -> io::Result<()> {
+fn handle_client(stream: TcpStream, kv_store: &mut Arc<Mutex<Store>>) -> io::Result<()> {
     let peer = stream.peer_addr()?;
     println!("New client connected: {}", peer);
 
@@ -49,7 +54,7 @@ fn handle_client(stream: TcpStream, kv_store: &mut store::Store) -> io::Result<(
         if bytes_read == 0 {
             break;
         }
-        
+
         let tokens = match command::lexer(line.trim_end()) {
             Ok(tokens) => tokens,
             Err(lex_error) => {
