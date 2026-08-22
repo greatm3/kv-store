@@ -201,9 +201,9 @@ mod lexer_tests {
     fn test_simple_words() {
         let input = "SET name Great";
         let expected = vec![
-            Token::Word("SET".to_string()),
-            Token::Word("name".to_string()),
-            Token::Word("Great".to_string()),
+            Token::word("SET"),
+            Token::word("name"),
+            Token::word("Great"),
         ];
 
         assert_eq!(lexer(input).unwrap(), expected)
@@ -213,9 +213,9 @@ mod lexer_tests {
     fn test_quotes_in_middle() {
         let input = "SET \"key spaced\" value";
         let expected = vec![
-            Token::Word("SET".to_string()),
-            Token::QuotedString("key spaced".to_string()),
-            Token::Word("value".to_string()),
+            Token::word("SET"),
+            Token::quoted("key spaced"),
+            Token::word("value"),
         ];
 
         assert_eq!(lexer(input).unwrap(), expected)
@@ -225,8 +225,8 @@ mod lexer_tests {
     fn test_trailing_quotes() {
         let input = "GET \"name\"";
         let expected = vec![
-            Token::Word("GET".to_string()),
-            Token::QuotedString("name".to_string()),
+            Token::word("GET"),
+            Token::quoted("name"),
         ];
 
         assert_eq!(lexer(input).unwrap(), expected)
@@ -236,9 +236,9 @@ mod lexer_tests {
     fn test_multiple_spaces() {
         let input = "SET     age       192   ";
         let expected = vec![
-            Token::Word("SET".to_string()),
-            Token::Word("age".to_string()),
-            Token::Word("192".to_string()),
+            Token::word("SET"),
+            Token::word("age"),
+            Token::word("192"),
         ];
 
         assert_eq!(lexer(input).unwrap(), expected)
@@ -256,9 +256,9 @@ mod lexer_tests {
     fn test_adjacent_quotes() {
         let input = "SET key\"value spaced\"";
         let expected = vec![
-            Token::Word("SET".to_string()),
-            Token::Word("key".to_string()),
-            Token::QuotedString("value spaced".to_string()),
+            Token::word("SET"),
+            Token::word("key"),
+            Token::quoted("value spaced"),
         ];
 
         assert_eq!(lexer(input).unwrap(), expected)
