@@ -77,14 +77,17 @@ fn handle_client(stream: TcpStream, kv_store: Arc<Mutex<Store>>) -> io::Result<(
 
         let kv_store_lock = kv_store.lock();
 
-        match kv_store_lock {
-            Ok(mut kv_store) => {
-                let response = format!("{}\n", kv_store.execute(parsed_command));
-                writer.write_all(response.as_bytes())?;
-                writer.flush()?;
+        let response = match kv_store_lock {
+            Ok(mut store) => store.execute(parsed_command),
+            Err(_) => {
+                eprintln!("Mutex poisoned by a panicked thread");
+                return Err(io::Error::new(io::ErrorKind::Other, "Lock failed"));
             }
-            Err(_) => (),
-        }
+        };
+
+        let response_str = format!("{}\n", response);
+        writer.write_all(response_str.as_bytes())?;
+        writer.flush()?;
     }
 
     println!("Client disconnected: {}", peer);
