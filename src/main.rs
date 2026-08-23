@@ -12,7 +12,7 @@ const SERVER_HOST: &str = "127.0.0.1";
 const SERVER_PORT: u64 = 6379;
 
 fn main() -> io::Result<()> {
-    let mut kv_store = Arc::new(Mutex::new(store::Store::new()));
+    let shared_kv_store = Arc::new(Mutex::new(store::Store::new()));
 
     let address = format!("{}:{}", SERVER_HOST, SERVER_PORT);
 
@@ -20,12 +20,12 @@ fn main() -> io::Result<()> {
     println!("Server listening on {}", address);
 
     for stream in listener.incoming() {
-        let shared_store = Arc::clone(&kv_store);
+        let ref_kv_store = Arc::clone(&shared_kv_store);
 
         match stream {
             Ok(stream) => {
                 thread::spawn(move || {
-                    handle_client(stream, &mut kv_store);
+                    let _ = handle_client(stream, ref_kv_store);
                 });
             }
 
@@ -38,7 +38,7 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn handle_client(stream: TcpStream, kv_store: &mut Arc<Mutex<Store>>) -> io::Result<()> {
+fn handle_client(stream: TcpStream, kv_store: Arc<Mutex<Store>>) -> io::Result<()> {
     let peer = stream.peer_addr()?;
     println!("New client connected: {}", peer);
 
@@ -75,9 +75,16 @@ fn handle_client(stream: TcpStream, kv_store: &mut Arc<Mutex<Store>>) -> io::Res
             }
         };
 
-        let response = format!("{}\n", kv_store.execute(parsed_command));
-        writer.write_all(response.as_bytes())?;
-        writer.flush()?;
+        let kv_store_lock = kv_store.lock();
+
+        match kv_store_lock {
+            Ok(mut kv_store) => {
+                let response = format!("{}\n", kv_store.execute(parsed_command));
+                writer.write_all(response.as_bytes())?;
+                writer.flush()?;
+            }
+            Err(_) => (),
+        }
     }
 
     println!("Client disconnected: {}", peer);
