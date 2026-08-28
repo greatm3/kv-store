@@ -15,19 +15,19 @@ impl Store {
         if let Ok(recovered_records) = Wal::recover(wal_path) {
             for record in recovered_records {
                 if let Ok(cmd_string) = String::from_utf8(record) {
-
                     if let Ok(tokens) = command::lexer(&cmd_string) {
                         if let Ok(parsed_cmd) = command::parse(&tokens) {
-
                             match parsed_cmd {
-                                Command::Set { key, value } => { data_store.insert(key, value); },
-                                Command::Del { key } => { data_store.remove(&key); },
+                                Command::Set { key, value } => {
+                                    data_store.insert(key, value);
+                                }
+                                Command::Del { key } => {
+                                    data_store.remove(&key);
+                                }
                                 _ => {}
                             }
-
                         }
                     }
-
                 }
             }
         }
