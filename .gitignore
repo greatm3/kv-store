@@ -15,3 +15,8 @@ Thumbs.db
 
 # Environment/secrets, if you ever add config
 .env
+
+# Database and Log files
+wal.log
+*.log
+data/

@@ -11,9 +11,10 @@ mod wal;
 
 const SERVER_HOST: &str = "127.0.0.1";
 const SERVER_PORT: u64 = 6379;
+const WAL_PATH: &str = "wal.log";
 
 fn main() -> io::Result<()> {
-    let shared_kv_store = Arc::new(Mutex::new(store::Store::new()));
+    let shared_kv_store = Arc::new(Mutex::new(store::Store::new(WAL_PATH).expect("ERR(CRITICAL): Failed to boot database and recover WAL")));
 
     let address = format!("{}:{}", SERVER_HOST, SERVER_PORT);
 
