@@ -19,13 +19,13 @@ pub enum ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ParseError::EmptyCommand => write!(f, "ERR empty command: no input provided\n"),
+            ParseError::EmptyCommand => write!(f, "ERROR empty command: no input provided\n"),
             ParseError::UnknownCommand(s) => {
-                write!(f, "ERR unknown command '{s}': expected SET, GET or DEL\n")
+                write!(f, "ERROR unknown command '{s}': expected SET, GET or DEL\n")
             }
             ParseError::WrongArgumentCount { expected, got } => write!(
                 f,
-                "wrong number of arguments: expected {expected} arguments, got {got}\n"
+                "ERROR wrong number of arguments: expected {expected} arguments, got {got}\n"
             ),
         }
     }
