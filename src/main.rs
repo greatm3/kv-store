@@ -7,6 +7,7 @@ use crate::store::Store;
 
 mod command;
 mod store;
+mod wal;
 
 const SERVER_HOST: &str = "127.0.0.1";
 const SERVER_PORT: u64 = 6379;
