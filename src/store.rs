@@ -1,6 +1,7 @@
-use crate::command::Command;
+use crate::command::{self, Command};
 use crate::wal::Wal;
 use std::collections::HashMap;
+use std::io;
 
 pub struct Store {
     data_store: HashMap<String, String>,
@@ -8,10 +9,32 @@ pub struct Store {
 }
 
 impl Store {
-    pub fn new() -> Self {
-        Store {
-            data_store: HashMap::new(),
+    pub fn new(wal_path: &str) -> io::Result<Self> {
+        let mut data_store = HashMap::new();
+
+        if let Ok(recovered_records) = Wal::recover(wal_path) {
+            for record in recovered_records {
+                if let Ok(cmd_string) = String::from_utf8(record) {
+
+                    if let Ok(tokens) = command::lexer(&cmd_string) {
+                        if let Ok(parsed_cmd) = command::parse(&tokens) {
+
+                            match parsed_cmd {
+                                Command::Set { key, value } => { data_store.insert(key, value); },
+                                Command::Del { key } => { data_store.remove(&key); },
+                                _ => {}
+                            }
+
+                        }
+                    }
+
+                }
+            }
         }
+
+        let wal = Wal::new(wal_path)?;
+
+        Ok(Store { data_store, wal })
     }
 
     pub fn set(&mut self, key: String, value: String) {
@@ -55,7 +78,7 @@ mod store_tests {
     use super::*;
 
     fn test_helper() -> Store {
-        Store::new()
+        Store::new("test-wal.log").expect("Failed to create test store")
     }
 
     #[test]
