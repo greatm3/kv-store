@@ -53,7 +53,14 @@ impl Store {
     pub fn execute(&mut self, cmd: Command) -> String {
         match cmd {
             Command::Set { key, value } => {
-                self.set(key, value);
+
+                let wal_payload = format!("SET {} {}", key, value);
+
+                if let Err(e) = self.wal.append_record(wal_payload.as_bytes()) {
+                    eprint!("CRITICAL WAL ERROR: Failed to sync to disk - {}", e);
+                    return "SERVER ERROR: Disk I/O failed".to_string();
+                } 
+
                 "OK".to_string()
             }
             Command::Get { key } => {
@@ -63,6 +70,14 @@ impl Store {
                 };
             }
             Command::Del { key } => {
+
+                let wal_payload = format!("DEL {}", key);
+
+                if let Err(e) = self.wal.append_record(wal_payload.as_bytes()) {
+                    eprint!("CRITICAL WAL ERROR: Failed to sync to disk - {}", e);
+                    return "SERVER ERROR: Disk I/O failed".to_string();
+                } 
+
                 if self.delete(key.as_str()) {
                     return "OK".to_string();
                 }
