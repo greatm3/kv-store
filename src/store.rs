@@ -1,9 +1,10 @@
 use crate::command::Command;
+use crate::wal::Wal;
 use std::collections::HashMap;
-
 
 pub struct Store {
     data_store: HashMap<String, String>,
+    wal: Wal,
 }
 
 impl Store {
